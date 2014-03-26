@@ -11,12 +11,14 @@ we want to glean the following insights:
 
 """
 import sys
+from nltk.corpus import stopwords
 
 def parseFile(fileName, wordCnt, gitrType):
     """ Read words from file line by line. Stores a dict wordCnt with 
     word as key and index as value. If a guitar is found its type (the
     word preceding it) is stored in dict gitrType
     """
+    stopWords_ = stopwords.words('english')
     with open(fileName,'r') as fIn:
         # Read each line in file. Extract words from line.
         for line in fIn:
@@ -25,6 +27,9 @@ def parseFile(fileName, wordCnt, gitrType):
                 # Get index of word from wordCnt. If it is seen for the 
                 # first time assign an index to the word
                 word = word.lower()    #case of words is ignored
+                if word in stopWords_:    # ignore stop words
+                    prevWord = ''
+                    continue
                 # Update wordCnt with number of occurrences of word.
                 if word in wordCnt:                
                     wordCnt[word] += 1
