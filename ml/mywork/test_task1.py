@@ -11,6 +11,18 @@ def testHypenated():
     assert('wi-fi' not in w)
     assert('wifi' in w)
         
+def testHypenated():
+    w = {}
+    g = {}
+    stopWords = {}
+    line = "The wi_fi _Credit Pros"
+    task1.parseLine(line, stopWords, w, g)    
+    assert(len(w) == 5)
+    assert('wi_fi' not in w)
+    assert('wi' in w)
+    assert('fi' in w)    
+    assert('credit' in w)
+        
 def testPunctuation1():
     w = {}
     g = {}

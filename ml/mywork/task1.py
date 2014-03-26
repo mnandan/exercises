@@ -23,10 +23,12 @@ def parseLine(line, stopWords_, wordCnt, gitrType):
     punctuations.
     """
     prevWord = ''
-    # Hypen in hyphenated words are removed e.g. wi-fi ==> wifi
+    # Hypen in hyphenated words are removed e.g. wi-fi ==> wifi.
     line = re.sub('(\w)-(\w)',r'\1\2',line)
+    # replace underscore with space     
+    line = re.sub('(\w)_(\w)',r'\1 \2',line)    
     # Remove punctuation marks.
-    line = re.sub("[',~`@#$%^&*|<>{}[\]\\\/.:;?!\(\)\"-]",r'',line)
+    line = re.sub("[',~`@#$%^&*|<>{}[\]\\\/.:;?!\(\)_\"-]",r'',line)
     wnLmtzr = WordNetLemmatizer()
   
     for word in line.split():
