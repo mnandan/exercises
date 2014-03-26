@@ -107,7 +107,7 @@ def getLdaWeight(corpus, id2w, k):
     tops = model.show_topics(topics=k,topn=10,formatted = False)
     # get the weights of all the words in tops
     weights = [tops[i][j][0] for i in range(0,k) for j in range(0,10)]        
-    return sum(weights)
+    return sum(weights)/(k*10.0)
 
 def getWeights(X, w, kVals):
     allErr = []
