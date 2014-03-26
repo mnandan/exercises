@@ -18,7 +18,10 @@ def parseFile(fileName, wordCnt, gitrType):
     word as key and index as value. If a guitar is found its type (the
     word preceding it) is stored in dict gitrType
     """
-    stopWords_ = stopwords.words('english')
+    # Get english stop words from nltk.
+    stopWords_ = stopwords.words('english')    
+    # The word 'online' is added as it is not relevant in this context.
+    stopWords_.append('online')     
     with open(fileName,'r') as fIn:
         # Read each line in file. Extract words from line.
         for line in fIn:
