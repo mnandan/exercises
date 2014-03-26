@@ -10,7 +10,34 @@ def testparseLine1():
     assert(len(lw) == 4)
     assert(lw[w['credit']] == 2)
     assert(lw[w['wifi']] == 1)    
-        
+
+def testparseFile():
+    w = {}
+    stopWords = {}
+    fileName = 'testPF2.dat'
+    flWrd = task2.parseFile(fileName, w)
+    assert(len(w) == 19)
+    assert(len(flWrd) == 4)
+    
+    assert(flWrd[0][w['credit']] == 3)
+    assert(flWrd[2][w['train']] == 1)
+    assert(flWrd[3][w['guitar']] == 3)
+
+    assert(len(flWrd[0]) == 4)    
+    assert(len(flWrd[1]) == 14)
+    assert(len(flWrd[2]) == 14)
+    assert(len(flWrd[3]) == 5)
+
+    
+def testTFIDF():
+    fileName = 'testPF2.dat'
+    X = task2.makeTFIDF(fileName)
+    assert(X.shape == (4,19))
+    assert(X[0].nnz == 4)
+    assert(X[1].nnz == 14)
+    assert(X[2].nnz == 14)
+    assert(X[3].nnz == 5)    
+            
 # def testHypenated():
 #     w = {}
 #     g = {}

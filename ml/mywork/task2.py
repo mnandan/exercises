@@ -70,25 +70,31 @@ def parseFile(fileName, wordCnt):
             fileWords.append(lineWords)
     return fileWords
 
-def makeTFIDF(fileName, wordCnt):
+def makeTFIDF(fileName):
     """ Calls parseFile() to get wordCnt, a dict with all words and 
     fileWords a list of dict that stores count of words in each line.
     Generates a sparse TF-IDF matrix using fileWords.
-    """ 
+    """
+    wordCnt = {} 
     fileWords = parseFile(fileName, wordCnt)
     # create CSR matrix of dimensions (Num. of deals) x (Num. of words)
-    X = sparseMat.csr_matrix(len(fileWords),len(wordCnt))
     rowNum = 0
+    rowList = []
+    ColumnList = []
+    data = []
     for lWords in fileWords:
         for wordInd in lWords:
-            X[rowNum][wordInd] = lWords[wordInd]
+            rowList.append(rowNum)
+            ColumnList.append(wordInd)
+            data.append(lWords[wordInd])            
+        rowNum += 1
+        
+    X = sparseMat.csr_matrix((data, (rowList, ColumnList)), shape=(len(fileWords),len(wordCnt)), dtype='float64')
     tfidfTrans = TfidfTransformer()
-    X = tfidfTrans.fit(X)
+    X = tfidfTrans.fit_transform(X)
     
     return X
     
 if __name__== '__main__':
-    wordCnt = {}    # stores count of each word
-    gitrType = {}    # stores all guitar types
     fileName = '../data/deals.txt'
-    X = makeTFIDF(fileName, wordCnt)
+    X = makeTFIDF(fileName)
