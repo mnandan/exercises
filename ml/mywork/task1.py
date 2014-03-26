@@ -13,6 +13,7 @@ we want to glean the following insights:
 import sys
 from nltk.corpus import stopwords
 import re
+from nltk.stem.wordnet import WordNetLemmatizer
 
 def parseFile(fileName, wordCnt, gitrType):
     """ Read words from file line by line. Stores a dict wordCnt with 
@@ -21,9 +22,9 @@ def parseFile(fileName, wordCnt, gitrType):
     """
     # Get English stop words from nltk.
     stopWords_ = stopwords.words('english')    
-    # The words 'online' and 'shop' are not relevant in this context.
-    stopWords_.append('online')
-    stopWords_.append('shop')
+    # Words online, buy, and shop are not relevant in this context.
+    stopWords_.extend(['online', 'shop', 'buy'])
+    wnLmtzr = WordNetLemmatizer()
     #punc = re.compile(r'['"()!?.]')
     with open(fileName,'r') as fIn:
         # Read each line in file. Extract words from line.
@@ -36,7 +37,8 @@ def parseFile(fileName, wordCnt, gitrType):
             for word in line.split():
                 # Get index of word from wordCnt. If it is seen for the 
                 # first time assign an index to the word
-                word = word.lower()    #case of words is ignored                
+                word = word.lower()    # case of words is ignored
+                word = wnLmtzr.lemmatize(word, pos='v')    # wordnet lemmatizer                 
                 # Ignore stop words and numbers.
                 if word in stopWords_ or \
                         re.match('^\d+x?\d*$',word) is not None:
