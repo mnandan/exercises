@@ -12,25 +12,34 @@ we want to glean the following insights:
 """
 import sys
 from nltk.corpus import stopwords
+import re
 
 def parseFile(fileName, wordCnt, gitrType):
     """ Read words from file line by line. Stores a dict wordCnt with 
     word as key and index as value. If a guitar is found its type (the
     word preceding it) is stored in dict gitrType
     """
-    # Get english stop words from nltk.
+    # Get English stop words from nltk.
     stopWords_ = stopwords.words('english')    
-    # The word 'online' is added as it is not relevant in this context.
-    stopWords_.append('online')     
+    # The words 'online' and 'shop' are not relevant in this context.
+    stopWords_.append('online')
+    stopWords_.append('shop')
+    #punc = re.compile(r'['"()!?.]')
     with open(fileName,'r') as fIn:
         # Read each line in file. Extract words from line.
         for line in fIn:
             prevWord = ''
+            # Hypen in hyphenated words are removed e.g. wi-fi ==> wifi
+            line = re.sub('(\w)-(\w)',r'\1\2',line)
+            # Remove punctuation marks.
+            line = re.sub("[',~`@#$%^&*|<>{}[\]\\\/.:;?!()\"-]",r'',line)            
             for word in line.split():
                 # Get index of word from wordCnt. If it is seen for the 
                 # first time assign an index to the word
-                word = word.lower()    #case of words is ignored
-                if word in stopWords_:    # ignore stop words
+                word = word.lower()    #case of words is ignored                
+                # Ignore stop words and numbers.
+                if word in stopWords_ or \
+                        re.match('^\d+x?\d*$',word) is not None:
                     prevWord = ''
                     continue
                 # Update wordCnt with number of occurrences of word.
@@ -40,7 +49,7 @@ def parseFile(fileName, wordCnt, gitrType):
                     wordCnt[word] = 1
                 # word is guitar store the type in gitrType
                 if word == 'guitar' or word == 'guitars':
-                    if prevWord != '':
+                    if prevWord != '':    # previous word not stop word
                         gitrType[prevWord] = 1
                 prevWord = word
 
