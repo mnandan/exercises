@@ -17,7 +17,7 @@ from nltk.stem.wordnet import WordNetLemmatizer
 import nltk
 
 def parseLine(line, stopWords_, wordCnt, gitrType):
-    """Stores a dict wordCnt with word as key and index as value. If a 
+    """Stores a dict wordCnt with word as key and count as value. If a 
     guitar is found its type (the word preceding it) is stored in dict
     gitrType. Removes stop words and lemmas using nltk. Also removes
     punctuations.
@@ -32,8 +32,8 @@ def parseLine(line, stopWords_, wordCnt, gitrType):
     wnLmtzr = WordNetLemmatizer()
   
     for word in line.split():
-        # Get index of word from wordCnt. If it is seen for the 
-        # first time assign an index to the word
+        # increment count of word in wordCnt. If it is seen for the 
+        # first time add it to wordCnt
         word = word.lower()    # case of words is ignored
         # Lemmatize word using word net function
         word = wnLmtzr.lemmatize(word, 'n')    # with noun
@@ -62,7 +62,7 @@ def parseFile(fileName, wordCnt, gitrType):
     stopWords_ = stopwords.words('english')    
     # Words online, buy, and shop are not relevant in this context.
     stopWords_.extend(['online', 'shop', 'buy'])
-    stopWords_ = set(stopWords_)
+    stopWords_ = set(stopWords_)    # set gives faster access
     with open(fileName,'r') as fIn:
         # Read each line in file. Extract words from line.
         for line in fIn:
