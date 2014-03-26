@@ -15,51 +15,55 @@ from nltk.corpus import stopwords
 import re
 from nltk.stem.wordnet import WordNetLemmatizer
 
-def parseFile(fileName, wordCnt, gitrType):
-    """ Read words from file line by line. Stores a dict wordCnt with 
-    word as key and index as value. If a guitar is found its type (the
-    word preceding it) is stored in dict gitrType
+def parseLine(line, stopWords_, wordCnt, gitrType):
+    """Stores a dict wordCnt with word as key and index as value. If a 
+    guitar is found its type (the word preceding it) is stored in dict
+    gitrType. Removes stop words and lemmas using nltk. Also removes
+    punctuations.
     """
+    prevWord = ''
+    # Hypen in hyphenated words are removed e.g. wi-fi ==> wifi
+    line = re.sub('(\w)-(\w)',r'\1\2',line)
+    # Remove punctuation marks.
+    line = re.sub("[',~`@#$%^&*|<>{}[\]\\\/.:;?!\(\)\"-]",r'',line)
+    wnLmtzr = WordNetLemmatizer()
+    for word in line.split():
+        # Get index of word from wordCnt. If it is seen for the 
+        # first time assign an index to the word
+        word = word.lower()    # case of words is ignored
+        word = wnLmtzr.lemmatize(word, pos='v')    # wordnet lemmatizer                 
+        # Ignore stop words and numbers.
+        if word in stopWords_ or \
+                re.match('^\d+x?\d*$',word) is not None:
+            prevWord = ''
+            continue
+        # Update wordCnt with number of occurrences of word.
+        if word in wordCnt:                
+            wordCnt[word] += 1
+        else:
+            wordCnt[word] = 1
+        # word is guitar store the type in gitrType
+        if word == 'guitar' or word == 'guitars':
+            if prevWord != '':    # previous word not stop word
+                gitrType[prevWord] = 1
+        prevWord = word
+                    
+def parseFile(fileName, wordCnt, gitrType):
+    """ Read words from file line by line and call parseLine()."""    
     # Get English stop words from nltk.
     stopWords_ = stopwords.words('english')    
     # Words online, buy, and shop are not relevant in this context.
     stopWords_.extend(['online', 'shop', 'buy'])
-    wnLmtzr = WordNetLemmatizer()
-    #punc = re.compile(r'['"()!?.]')
+    stopWords_ = set(stopWords_)
     with open(fileName,'r') as fIn:
         # Read each line in file. Extract words from line.
         for line in fIn:
-            prevWord = ''
-            # Hypen in hyphenated words are removed e.g. wi-fi ==> wifi
-            line = re.sub('(\w)-(\w)',r'\1\2',line)
-            # Remove punctuation marks.
-            line = re.sub("[',~`@#$%^&*|<>{}[\]\\\/.:;?!()\"-]",r'',line)            
-            for word in line.split():
-                # Get index of word from wordCnt. If it is seen for the 
-                # first time assign an index to the word
-                word = word.lower()    # case of words is ignored
-                word = wnLmtzr.lemmatize(word, pos='v')    # wordnet lemmatizer                 
-                # Ignore stop words and numbers.
-                if word in stopWords_ or \
-                        re.match('^\d+x?\d*$',word) is not None:
-                    prevWord = ''
-                    continue
-                # Update wordCnt with number of occurrences of word.
-                if word in wordCnt:                
-                    wordCnt[word] += 1
-                else:
-                    wordCnt[word] = 1
-                # word is guitar store the type in gitrType
-                if word == 'guitar' or word == 'guitars':
-                    if prevWord != '':    # previous word not stop word
-                        gitrType[prevWord] = 1
-                prevWord = word
+            parseLine(line, stopWords_, wordCnt, gitrType)
 
-def naiveCount():
-    wordCnt = {}    # stores count of each word
-    gitrType = {}    # stores all guitar types
+
+def smartCount(wordCnt, gitrType):
     parseFile('../data/deals.txt', wordCnt, gitrType)
-    
+    # find most popular and least popular terms
     maxCnt = 0;
     maxTerm = '';
     minCnt = sys.maxint;
@@ -72,10 +76,12 @@ def naiveCount():
             minCnt = wordCnt[word]
             minTerm = word
     
-    print "Results of naive word count:"
+    print "Results of word count:"
     print "  most popular term = ", maxTerm
     print "  least popular term = ", minTerm
     print "  number of types of guitars = ", len(gitrType)
-
+    
 if __name__== '__main__':
-    naiveCount()
+    wordCnt = {}    # stores count of each word
+    gitrType = {}    # stores all guitar types
+    smartCount(wordCnt, gitrType)
