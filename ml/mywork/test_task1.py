@@ -11,7 +11,7 @@ def testHypenated():
     assert('wi-fi' not in w)
     assert('wifi' in w)
         
-def testHypenated():
+def testUScr():
     w = {}
     g = {}
     stopWords = {}
