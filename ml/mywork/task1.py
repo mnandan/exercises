@@ -14,6 +14,7 @@ import sys
 from nltk.corpus import stopwords
 import re
 from nltk.stem.wordnet import WordNetLemmatizer
+import nltk
 
 def parseLine(line, stopWords_, wordCnt, gitrType):
     """Stores a dict wordCnt with word as key and index as value. If a 
@@ -27,11 +28,16 @@ def parseLine(line, stopWords_, wordCnt, gitrType):
     # Remove punctuation marks.
     line = re.sub("[',~`@#$%^&*|<>{}[\]\\\/.:;?!\(\)\"-]",r'',line)
     wnLmtzr = WordNetLemmatizer()
+  
     for word in line.split():
         # Get index of word from wordCnt. If it is seen for the 
         # first time assign an index to the word
         word = word.lower()    # case of words is ignored
-        word = wnLmtzr.lemmatize(word, pos='v')    # wordnet lemmatizer                 
+        # Lemmatize word using word net function
+        word = wnLmtzr.lemmatize(word, 'n')    # with noun
+        word1 = wnLmtzr.lemmatize(word, 'v')    # with verb
+        if len(word1) < len(word):    # select smaller of two
+            word = word1                
         # Ignore stop words and numbers.
         if word in stopWords_ or \
                 re.match('^\d+x?\d*$',word) is not None:
@@ -42,8 +48,8 @@ def parseLine(line, stopWords_, wordCnt, gitrType):
             wordCnt[word] += 1
         else:
             wordCnt[word] = 1
-        # word is guitar store the type in gitrType
-        if word == 'guitar' or word == 'guitars':
+        # If word is guitar store the type in gitrType.
+        if word == 'guitar':
             if prevWord != '':    # previous word not stop word
                 gitrType[prevWord] = 1
         prevWord = word
@@ -61,8 +67,12 @@ def parseFile(fileName, wordCnt, gitrType):
             parseLine(line, stopWords_, wordCnt, gitrType)
 
 
-def smartCount(wordCnt, gitrType):
-    parseFile('../data/deals.txt', wordCnt, gitrType)
+def smartCount(fileName, wordCnt, gitrType):
+    """ Calls parseFile() to get word count and guitar count. Finds 
+    most popular and least popular terms and also the number of guitar
+    types. 
+    """ 
+    parseFile(fileName, wordCnt, gitrType)
     # find most popular and least popular terms
     maxCnt = 0;
     maxTerm = '';
@@ -81,7 +91,10 @@ def smartCount(wordCnt, gitrType):
     print "  least popular term = ", minTerm
     print "  number of types of guitars = ", len(gitrType)
     
+    return (maxTerm, maxCnt, minTerm, minCnt)
+    
 if __name__== '__main__':
     wordCnt = {}    # stores count of each word
     gitrType = {}    # stores all guitar types
-    smartCount(wordCnt, gitrType)
+    fileName = '../data/deals.txt'
+    smartCount(fileName, wordCnt, gitrType)
