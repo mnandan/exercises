@@ -28,7 +28,7 @@ def parseLine(line, stopWords_, wordCnt, gitrType):
     # replace underscore with space     
     line = re.sub('(\w)_(\w)',r'\1 \2',line)    
     # Remove punctuation marks.
-    line = re.sub("[',~`@#$%^&*|<>{}[\]\\\/.:;?!\(\)_\"-]",r'',line)
+    line = re.sub("[',~`@#$%^&*|<>{}[\]\\\/.:;?!\(\)_+\"-]",r'',line)
     wnLmtzr = WordNetLemmatizer()
   
     for word in line.split():

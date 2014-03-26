@@ -4,21 +4,24 @@ import task2
 def testparseLine1():
     w = {}
     stopWords = {}
+    currWrd = [0]
     line = "The wi-fi Credit Pros credit"
-    lw = task2.parseLine(line, stopWords, w)    
+    lw = task2.parseLine(line, stopWords, w, currWrd)    
     assert(len(w) == 4)
     assert(len(lw) == 4)
+    assert(w['credit'] == 2)    
     assert(lw[w['credit']] == 2)
     assert(lw[w['wifi']] == 1)    
 
 def testparseFile():
     w = {}
-    stopWords = {}
     fileName = 'testPF2.dat'
     flWrd = task2.parseFile(fileName, w)
     assert(len(w) == 19)
     assert(len(flWrd) == 4)
-    
+    assert(w['train'] == 5)
+    assert(w['guitar'] == 18)    
+        
     assert(flWrd[0][w['credit']] == 3)
     assert(flWrd[2][w['train']] == 1)
     assert(flWrd[3][w['guitar']] == 3)
@@ -29,9 +32,10 @@ def testparseFile():
     assert(len(flWrd[3]) == 5)
 
     
-def testTFIDF():
+def testCSC():
+    w = {}
     fileName = 'testPF2.dat'
-    X = task2.makeTFIDF(fileName)
+    X = task2.getCSC(fileName, w)
     assert(X.shape == (4,19))
     assert(X[0].nnz == 4)
     assert(X[1].nnz == 14)
