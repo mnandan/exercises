@@ -31,6 +31,18 @@ def testparseFile():
     assert(len(flWrd[2]) == 14)
     assert(len(flWrd[3]) == 7)
 
+def testgetDC():
+    doc2Top = [[(0,0.4),(1,0.3),(2,0.3)], [(0,0.3),(1,0.2),(2,0.5)],
+               [(0,0.2),(1,0.45),(2,0.35)], [(0,0.1),(1,0.8),(2,0.1)]]  
+    docClust = task2.getDocClust(doc2Top, 3)
+    assert(len(docClust) == 3)
+    assert(len(docClust[0]) == 1)
+    assert(docClust[0][0] == (0,0.4))    
+    assert(len(docClust[1]) == 2)
+    assert(docClust[1][0] == (2,0.45))    
+    assert(docClust[1][1] == (3,0.8))    
+    assert(len(docClust[2]) == 1)
+    assert(docClust[2][0] == (1,0.5))    
     
 def testCComp():
     item1 = (1,0.4)

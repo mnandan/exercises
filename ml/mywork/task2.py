@@ -101,7 +101,34 @@ def getAllEnt(corpus, id2w, kVals):
         allEnt.append(np.mean(ent))
     return allEnt
 
+def getDocClust(doc2Top, k):
+    """ Compute cluster membership of document based on topic with
+    maximum probability. Return a list of tuples 
+    (document number, cluster membership probability)
+    """    
+    # Initalize list of document numbers to mark cluster membership.    
+    docClust = []    
+    for i in range(0,k):
+        docClust.append([])
+    # Assign document indices to one of k clusters, based on index of
+    # topic with maximum probability    
+    docNum = 0;
+    for doc in doc2Top:
+        maximum = doc[0][1]
+        index = 0
+        for i in range(1,k):
+            if doc[i][1] > maximum:
+                maximum = doc[i][1]
+                index = i
+        docClust[index].append((docNum,maximum))
+        docNum += 1
+    return docClust
+
 def dClustComp(item1, item2):
+    """ Comparison function for sorted() on list of document
+    cluster membership. Items are tuples 
+    (document number, cluster membership probability)
+    """     
     if item1[1] < item2[1]:
         return 1
     elif item1[1] > item2[1]:
@@ -117,15 +144,8 @@ if __name__== '__main__':
     id2w = corpora.Dictionary(fileWords)
     # Creates the Bag of Word corpus.
     corpus = [id2w.doc2bow(line) for line in fileWords]
-#     kVals = range(4,14,2)    # set of parameters
-#     allEnt = getAllEnt(corpus, id2w, kVals)
-#     plt.plot(kVals, allEnt)
-#     plt.ylabel('Mean of entropy')
-#     plt.xlabel('Number of latent topics')
-#     plt.show()    
-    
     # Ideal number of topics identified as 10 based on plot obtained
-    # above (finalfig.png), and the entropy values and also by 
+    # finalfig.png, and the entropy values and also by 
     # visually inspecting the resulting topics
     k = 10 
     model = lda.LdaModel(corpus, id2word=id2w, num_topics=k, chunksize=10000,
@@ -143,22 +163,7 @@ if __name__== '__main__':
     # Get document-topic matrix using model
     doc2TopIter = model[corpus]
     doc2Top =  [doc for doc in doc2TopIter]
-    # Initalize list of document numbers to mark cluster membership.    
-    docClust = []    
-    for i in range(0,k):
-        docClust.append([])
-    # Assign document indices to one of k clusters, based on index of
-    # topic with maximum probability    
-    docNum = 0;
-    for doc in doc2Top:
-        maximum = doc[0]
-        index = 0
-        for i in range(1,len(doc)):
-            if doc[i] > maximum:
-                maximum = doc[i]
-                index = i
-        docClust[index].append((docNum,maximum))
-        docNum += 1
+    docClust = getDocClust(doc2Top, k)
     # The groups of deals are printed below. Due to the large number
     # of deals, only 10 deals are displayed per group. Displayed deals
     # have largest probability of membership in the topic cluster
