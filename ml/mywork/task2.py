@@ -19,16 +19,14 @@ import gensim.matutils as genCorp
 import matplotlib.pyplot as plt
 import math
 import numpy as np
-from sklearn.cluster import DBSCAN
+from gensim import corpora
 
 def parseLine(line, stopWords_, wordInd, currWrd):
-    """Updates wordInd with word as key and index as value. Removes
-    stop words and lemmas using nltk and punctuations using re.
-    Returns a dict with valid words in the line as keys and their 
-    count as values. currWrd is the index of next word occurring for 
-    the first time
+    """ Removes stop words and lemmas using nltk and punctuations 
+    using re. Returns a list with valid words in the line. currWrd is
+    the index of next word occurring for the first time
     """
-    lineWords = {}
+    lineWords = []
     # Hypen in hyphenated words are removed e.g. wi-fi ==> wifi.
     line = re.sub('(\w)-(\w)',r'\1\2',line)
     # replace underscore with space     
@@ -53,11 +51,8 @@ def parseLine(line, stopWords_, wordInd, currWrd):
         if word not in wordInd:                
             wordInd[word] = currWrd[0]
             currWrd[0] += 1
-        # Update lineWords with number of occurrences of word.
-        if wordInd[word] in lineWords:
-            lineWords[wordInd[word]] += 1
-        else:
-            lineWords[wordInd[word]] = 1
+        # Update lineWords with word.
+        lineWords.append(word)
     return lineWords
 
 def parseFile(fileName, wordInd):
@@ -67,7 +62,7 @@ def parseFile(fileName, wordInd):
     # Words online, buy, and shop are not relevant in this context.
     stopWords_.extend(['online', 'shop', 'buy'])
     stopWords_ = set(stopWords_)    # set gives faster access
-    fileWords = []    # list of dict stores count of words in each line
+    fileWords = []    # list of list stores words in each line
     currWrd = [0]    # currWrd is the index of next word
     with open(fileName,'r') as fIn:
         # Read each line in file. Extract words from line.
@@ -75,29 +70,6 @@ def parseFile(fileName, wordInd):
             lineWords = parseLine(line, stopWords_, wordInd, currWrd)
             fileWords.append(lineWords)
     return fileWords
-
-def getCSC(fileName, wordInd):
-    """ Calls parseFile() to get wordInd, a dict with all words and 
-    fileWords a list of dict that stores count of words in each line.
-    Generates a sparse matrix using fileWords.
-    """
-    fileWords = parseFile(fileName, wordInd)
-    # create CSC matrix of dimensions (Num. of deals) x (Num. of words)
-    rowNum = 0
-    rowList = []
-    ColumnList = []
-    data = []
-    for lWords in fileWords:
-        for colInd in lWords:
-            rowList.append(rowNum)
-            ColumnList.append(colInd)
-            data.append(lWords[colInd])            
-        rowNum += 1        
-    X = sparseMat.csc_matrix((data, (rowList, ColumnList)), 
-                             shape=(rowNum,len(wordInd)), dtype='int32')
-    # Convert the count matrix to a matrix of TFIDF values    
-    #X = TfidfTransformer().fit_transform(X)
-    return X
 
 def getLdaEnt(corpus, id2w, k):
     """ Generate LDA model with k topics and returns sum of all topic 
@@ -128,24 +100,33 @@ def getAllEnt(corpus, id2w, kVals):
         print k, np.mean(ent), min(ent), max(ent), np.std(ent)
         allEnt.append(np.mean(ent))
     return allEnt
-        
+
+def dClustComp(item1, item2):
+    if item1[1] < item2[1]:
+        return 1
+    elif item1[1] > item2[1]:
+        return -1
+    else:
+        return 0
+            
 if __name__== '__main__':
     wordInd = {} 
     fileName = '../data/deals.txt'
-    X = getCSC(fileName, wordInd)
-    # generate a hash with key and value of w reversed    
-    id2w = dict((value,key) for key,value in wordInd.iteritems())
-    # generate gensim corpus
-    corpus = genCorp.Sparse2Corpus(X, documents_columns=False)
-#     kVals = range(4,14,2)    # coarse set of parameters
+    fileWords = parseFile(fileName, wordInd)
+    # Create Dictionary using fileWords
+    id2w = corpora.Dictionary(fileWords)
+    # Creates the Bag of Word corpus.
+    corpus = [id2w.doc2bow(line) for line in fileWords]
+#     kVals = range(4,14,2)    # set of parameters
 #     allEnt = getAllEnt(corpus, id2w, kVals)
 #     plt.plot(kVals, allEnt)
 #     plt.ylabel('Mean of entropy')
 #     plt.xlabel('Number of latent topics')
 #     plt.show()    
     
-    # Ideal number of topics identified as 10 based on finalfig.png
-    # and the high variation in the entropy values of the topics
+    # Ideal number of topics identified as 10 based on plot obtained
+    # above (finalfig.png), and the entropy values and also by 
+    # visually inspecting the resulting topics
     k = 10 
     model = lda.LdaModel(corpus, id2word=id2w, num_topics=k, chunksize=10000,
                          passes=2)    
@@ -153,9 +134,37 @@ if __name__== '__main__':
     topnNum = 10
     tops = model.show_topics(topics=k, topn=topnNum, formatted = False)
     # Display the top 10 terms in each of the 10 topic vectors
+    print "The top ten terms in the", k, "topics are:" 
     for i in range(0,k):
+        print "\t",
         for j in range(0,topnNum):
-            print tops[i][j][0] 
+            print tops[i][j][1],
+        print
     # Get document-topic matrix using model
-    #docTop = lda.inference(X)
-           
+    doc2TopIter = model[corpus]
+    doc2Top =  [doc for doc in doc2TopIter]
+    # Initalize list of document numbers to mark cluster membership.    
+    docClust = []    
+    for i in range(0,k):
+        docClust.append([])
+    # Assign document indices to one of k clusters, based on index of
+    # topic with maximum probability    
+    docNum = 0;
+    for doc in doc2Top:
+        maximum = doc[0]
+        index = 0
+        for i in range(1,len(doc)):
+            if doc[i] > maximum:
+                maximum = doc[i]
+                index = i
+        docClust[index].append((docNum,maximum))
+        docNum += 1
+    # The groups of deals are printed below. Due to the large number
+    # of deals, only 10 deals are displayed per group. Displayed deals
+    # have largest probability of membership in the topic cluster
+    for i in range(0,k):
+        sorted(docClust[index], cmp=dClustComp)
+        print "\n\nSelected deals in group", i + 1, "are:"
+        for j in range(0,10):
+            docNum = docClust[i][j][0]
+            print "\t",' '.join(fileWords[docNum])  
