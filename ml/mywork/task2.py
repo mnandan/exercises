@@ -17,6 +17,8 @@ import scipy.sparse as sparseMat
 from gensim.models import ldamodel as lda
 import gensim.matutils as genCorp 
 import matplotlib.pyplot as plt
+import math
+import numpy as np
 
 def parseLine(line, stopWords_, wordInd, currWrd):
     """Updates wordInd with word as key and index as value. Removes
@@ -111,7 +113,7 @@ def getLdaEnt(corpus, id2w, k):
         entropy.append(0) 
         for j in range(0,topnNum):
             p = tops[i][j][0]
-            entropy[i] -= p*log(p, base=2)          
+            entropy[i] -= p*math.log(p, 2)          
     return entropy
 
 def getAllEnt(X, w, kVals):
@@ -126,7 +128,7 @@ def getAllEnt(X, w, kVals):
     for k in kVals:
         ent = getLdaEnt(corpus,id2w, k)
         # display statistics to help in tuning
-        print k, sum(ent), min(ent), max(ent), std(ent)
+        print k, sum(ent), min(ent), max(ent), np.std(ent)
         allEnt.append(sum(ent))
     return allEnt
         

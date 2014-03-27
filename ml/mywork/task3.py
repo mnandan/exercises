@@ -24,9 +24,10 @@ import matplotlib.pyplot as plt
 from sklearn.feature_extraction.text import TfidfTransformer 
 import numpy as np
 from sklearn.ensemble import RandomForestClassifier as RFC
-from sklearn import cross_validation
+from sklearn import cross_validation as CV
 from sklearn.grid_search import GridSearchCV
 from sklearn.metrics import classification_report
+from sklearn.svm import SVC
 
 def parseLine(line, stopWords_, wordInd, currWrd):
     """Updates wordInd with word as key and index as value. Removes
@@ -118,13 +119,35 @@ if __name__== '__main__':
     fileNames = [('../data/bad_deals.txt',-1), ('../data/good_deals.txt',1)]        
     X, Y = getTFIDF(fileNames, wordInd)
     
-    Xtrain, Xtest, Ytrain, Ytest = cross_validation.train_test_split(X.todense(), Y, test_size=0.2, random_state=42)
-    Forest = RFC(n_estimators = 1000)
-    tuned_parameters = {"criterion": ["gini", "entropy"], "min_samples_split": [2,4,6,8],
-              "min_samples_leaf": [2,4,6,8]}
-#    tuned_parameters = [{'kernel': ['rbf'], 'gamma': [0.001], 'C': [100]}]
-    #for trainInd, testInd in rs:
-    clf = GridSearchCV(Forest, tuned_parameters, cv=5)
-    clf.fit(Xtrain, Ytrain)
-    predY = clf.predict(Xtest)
-    print(classification_report(Ytest, predY)) 
+    Xtr, Xts, Ytr, Yts = CV.train_test_split(X.todense(), Y, test_size=0.3,
+                                              random_state=42)
+    Forest = RFC(n_estimators = 100)
+    tuned_parameters = {"criterion": ["gini", "entropy"], 
+                        "min_samples_split": [2,4,6,8], 
+                        "min_samples_leaf": [2,4,6,8]}
+    clf = GridSearchCV(Forest, tuned_parameters, cv=10, scoring='accuracy')
+    clf.fit(Xtr, Ytr)
+    predY = clf.predict(Xts)
+    print classification_report(Yts, predY)
+    print clf.best_params_
+    print clf.best_score_    
+    
+    tuned_parameters = {'kernel': ['rbf'], 'gamma': [0.01,0.1,1,10], 
+                        'C': [0.1,1,10,100,1000]}
+    svmObj = SVC()
+    clf = GridSearchCV(svmObj, tuned_parameters, cv=10, scoring='accuracy')
+    clf.fit(Xtr, Ytr)
+    predY = clf.predict(Xts)
+    print classification_report(Yts, predY)
+    print clf.best_params_
+    print clf.best_score_ 
+    
+    tuned_parameters = {'kernel': ['poly'], 'degree': [2,3,4,5], 
+                        'C': [0.1,1,10,100,1000]}
+    svmObj = SVC()
+    clf = GridSearchCV(svmObj, tuned_parameters, cv=10, scoring='accuracy')
+    clf.fit(Xtr, Ytr)
+    predY = clf.predict(Xts)
+    print classification_report(Yts, predY)
+    print clf.best_params_
+    print clf.best_score_           
