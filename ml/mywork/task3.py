@@ -117,46 +117,51 @@ def getTFIDF(fileNames, wordInd):
 if __name__== '__main__':
     wordInd = {} 
     fileNames = [('../data/bad_deals.txt',0), ('../data/good_deals.txt',1)]        
-    X, Y = getTFIDF(fileNames, wordInd)    
-    Xtr, Xts, Ytr, Yts = CV.train_test_split(X.todense(), Y, test_size=0.3,
+    X, Y = getTFIDF(fileNames, wordInd)
+    # Make 70% of data as training set and 30% as validation set.
+    X = X.todense()
+    Xtr, Xts, Ytr, Yts = CV.train_test_split(X, Y, test_size=0.3,
                                               random_state=42)
-    Forest = RFC()
-    tuned_parameters = {"criterion": ["entropy"], 
-                        "min_samples_split": [4,6,8], 
-                        "min_samples_leaf": [2],
-                        "random_state": [None],
-                        "max_depth": [None],
-                        "n_estimators": [200]}
-    clf = GridSearchCV(Forest, tuned_parameters, cv=10, scoring='f1')
+    # Train a SVM on training set. Do cross validation to find 
+    # best params.
+    tuned_parameters = {'kernel': ['rbf'], 'gamma': [0.05], 'C': [12]}
+    svmObj = SVC()
+    clf = GridSearchCV(svmObj, tuned_parameters, cv=10, scoring='accuracy')
     clf.fit(Xtr, Ytr)
     predY = clf.predict(Xts)
     print classification_report(Yts, predY)
     print clf.best_params_
-    print clf.best_score_    
+    print clf.best_score_
+    
+    clf = SVC(kernel='rbf', gamma=0.05, C=12)
+    clf.fit(X, Y)
+    # Collect data from test file.
+    fileNames = [('../data/test_deals.txt',2)]
+    XTest, YTest = getTFIDF(fileNames, wordInd)
+    XTest = XTest.todense()
+    rdimT, cdimT = XTest.shape
+    rdimTr, cdimTr = X.shape    
+    # Deals with such words can be taken to be good.    
+    markWords = ['coupon','code']
+    for wrd in markWords:        
+        if wrd in wordInd:
+            colNum = wordInd[wrd]
+            for i in range(0,rdimT):
+                if(XTest[i,colNum] > 0):           
+                    YTest[i] = 1
 
-#     fileNames = [('../data/test_deals.txt',2)]
-#     XTest, YTest = getTFIDF(fileNames, wordInd)
-#     rdimT, cdimT = XTest.shape
-#     rdimR, cdimR = X.shape    
-#     if cdimT != cdimR:
+    # If new words were discovered in test file ignore their values.   
+    if cdimT > cdimTr:
+        XTest = XTest[:,0:cdimTr]
+    # Get results for test set.    
+    predYtest = clf.predict(XTest) 
+    yCnt = 0;
+    for y,p in zip(YTest,predYtest):        
+        if p == y:
+            yCnt += 1
+    print yCnt            
+        
+     
+
         
         
-#     tuned_parameters = {'kernel': ['rbf'], 'gamma': [0.05], 
-#                         'C': [12]}
-#     svmObj = SVC()
-#     clf = GridSearchCV(svmObj, tuned_parameters, cv=10, scoring='f1')
-#     clf.fit(Xtr, Ytr)
-#     predY = clf.predict(Xts)
-#     print classification_report(Yts, predY)
-#     print clf.best_params_
-#     print clf.best_score_ 
-#     
-#     tuned_parameters = {'kernel': ['poly'], 'degree': [4], 'coef0':[1],
-#                         'C': [90,95,100]}
-#     svmObj = SVC()
-#     clf = GridSearchCV(svmObj, tuned_parameters, cv=10, scoring='f1')
-#     clf.fit(Xtr, Ytr)
-#     predY = clf.predict(Xts)
-#     print classification_report(Yts, predY)
-#     print clf.best_params_
-#     print clf.best_score_           

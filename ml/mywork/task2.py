@@ -128,15 +128,15 @@ def getAllEnt(X, w, kVals):
     for k in kVals:
         ent = getLdaEnt(corpus,id2w, k)
         # display statistics to help in tuning
-        print k, sum(ent), min(ent), max(ent), np.std(ent)
-        allEnt.append(sum(ent))
+        print k, np.mean(ent), min(ent), max(ent), np.std(ent)
+        allEnt.append(np.mean(ent))
     return allEnt
         
 if __name__== '__main__':
     wordInd = {} 
     fileName = '../data/deals.txt'
     X = getCSC(fileName, wordInd)
-    kVals = range(8,32,4)    # coarse set of parameters
+    kVals = range(4,14,2)    # coarse set of parameters
     allEnt = getAllEnt(X, wordInd, kVals)
     plt.plot(kVals, allEnt)
     plt.ylabel('Sum of entropy')
