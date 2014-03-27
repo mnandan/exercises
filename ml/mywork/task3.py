@@ -178,5 +178,7 @@ if __name__== '__main__':
             yCnt2 += 1
     print "On the manually labeled deals, ",
     print 100.0*float(yCnt2)/len(YTest2), "% deals are correctly classified"
-    # To get a better estimate of accuracy on test set clustering can be used.
-    # Labels can be assigned based on the label of the cluster it belongs to.      
+    # Another method to estimate of accuracy on test set is with clustering.
+    # Training data can be clustered and then cluster membership of test data 
+    # analyzed. Labels can be assigned based on the label of the cluster 
+    # it belongs to or from its neighbors.      
