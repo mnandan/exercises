@@ -122,9 +122,11 @@ if __name__== '__main__':
     Xtr, Xts, Ytr, Yts = CV.train_test_split(X.todense(), Y, test_size=0.3,
                                               random_state=42)
     Forest = RFC(n_estimators = 100)
-    tuned_parameters = {"criterion": ["gini", "entropy"], 
-                        "min_samples_split": [2,4,6,8], 
-                        "min_samples_leaf": [2,4,6,8]}
+    tuned_parameters = {"criterion": ["gini"], 
+                        "min_samples_split": [3,4,5], 
+                        "min_samples_leaf": [2,3],
+                        "random_state": [10,None],
+                        "max_depth": [3,5,7,None]}
     clf = GridSearchCV(Forest, tuned_parameters, cv=10, scoring='accuracy')
     clf.fit(Xtr, Ytr)
     predY = clf.predict(Xts)
@@ -132,8 +134,8 @@ if __name__== '__main__':
     print clf.best_params_
     print clf.best_score_    
     
-    tuned_parameters = {'kernel': ['rbf'], 'gamma': [0.01,0.1,1,10], 
-                        'C': [0.1,1,10,100,1000]}
+    tuned_parameters = {'kernel': ['rbf'], 'gamma': [0.05, 0.1, 0.5], 
+                        'C': [5,10,15,20,25]}
     svmObj = SVC()
     clf = GridSearchCV(svmObj, tuned_parameters, cv=10, scoring='accuracy')
     clf.fit(Xtr, Ytr)
@@ -142,7 +144,7 @@ if __name__== '__main__':
     print clf.best_params_
     print clf.best_score_ 
     
-    tuned_parameters = {'kernel': ['poly'], 'degree': [2,3,4,5], 
+    tuned_parameters = {'kernel': ['poly'], 'degree': [2,3,4,5], 'coef0':[1],
                         'C': [0.1,1,10,100,1000]}
     svmObj = SVC()
     clf = GridSearchCV(svmObj, tuned_parameters, cv=10, scoring='accuracy')
