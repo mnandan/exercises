@@ -168,7 +168,7 @@ if __name__== '__main__':
     # of deals, only 10 deals are displayed per group. Displayed deals
     # have largest probability of membership in the topic cluster
     for i in range(0,k):
-        sorted(docClust[index], cmp=dClustComp)
+        sorted(docClust[i], cmp=dClustComp)
         print "\n\nSelected deals in group", i + 1, "are:"
         for j in range(0,10):
             docNum = docClust[i][j][0]
