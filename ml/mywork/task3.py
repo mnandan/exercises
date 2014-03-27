@@ -117,40 +117,46 @@ def getTFIDF(fileNames, wordInd):
 if __name__== '__main__':
     wordInd = {} 
     fileNames = [('../data/bad_deals.txt',0), ('../data/good_deals.txt',1)]        
-    X, Y = getTFIDF(fileNames, wordInd)
-    
+    X, Y = getTFIDF(fileNames, wordInd)    
     Xtr, Xts, Ytr, Yts = CV.train_test_split(X.todense(), Y, test_size=0.3,
                                               random_state=42)
     Forest = RFC()
-    tuned_parameters = {"criterion": ["gini"], 
-                        "min_samples_split": [4], 
+    tuned_parameters = {"criterion": ["gini", "entropy"], 
+                        "min_samples_split": [2,4], 
                         "min_samples_leaf": [1,2],
-                        "random_state": [None],
+                        "random_state": [None,10],
                         "max_depth": [None],
-                        "n_estimators": [200]}
+                        "n_estimators": [100,200,300]}
     clf = GridSearchCV(Forest, tuned_parameters, cv=10, scoring='f1')
     clf.fit(Xtr, Ytr)
     predY = clf.predict(Xts)
     print classification_report(Yts, predY)
     print clf.best_params_
     print clf.best_score_    
-    
-    tuned_parameters = {'kernel': ['rbf'], 'gamma': [0.05], 
-                        'C': [12]}
-    svmObj = SVC()
-    clf = GridSearchCV(svmObj, tuned_parameters, cv=10, scoring='f1')
-    clf.fit(Xtr, Ytr)
-    predY = clf.predict(Xts)
-    print classification_report(Yts, predY)
-    print clf.best_params_
-    print clf.best_score_ 
-    
-    tuned_parameters = {'kernel': ['poly'], 'degree': [4], 'coef0':[1],
-                        'C': [90,95,100]}
-    svmObj = SVC()
-    clf = GridSearchCV(svmObj, tuned_parameters, cv=10, scoring='f1')
-    clf.fit(Xtr, Ytr)
-    predY = clf.predict(Xts)
-    print classification_report(Yts, predY)
-    print clf.best_params_
-    print clf.best_score_           
+
+#     fileNames = [('../data/test_deals.txt',2)]
+#     XTest, YTest = getTFIDF(fileNames, wordInd)
+#     rdimT, cdimT = XTest.shape
+#     rdimR, cdimR = X.shape    
+#     if cdimT != cdimR:
+        
+        
+#     tuned_parameters = {'kernel': ['rbf'], 'gamma': [0.05], 
+#                         'C': [12]}
+#     svmObj = SVC()
+#     clf = GridSearchCV(svmObj, tuned_parameters, cv=10, scoring='f1')
+#     clf.fit(Xtr, Ytr)
+#     predY = clf.predict(Xts)
+#     print classification_report(Yts, predY)
+#     print clf.best_params_
+#     print clf.best_score_ 
+#     
+#     tuned_parameters = {'kernel': ['poly'], 'degree': [4], 'coef0':[1],
+#                         'C': [90,95,100]}
+#     svmObj = SVC()
+#     clf = GridSearchCV(svmObj, tuned_parameters, cv=10, scoring='f1')
+#     clf.fit(Xtr, Ytr)
+#     predY = clf.predict(Xts)
+#     print classification_report(Yts, predY)
+#     print clf.best_params_
+#     print clf.best_score_           
