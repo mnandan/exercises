@@ -116,7 +116,7 @@ def getTFIDF(fileNames, wordInd):
        
 if __name__== '__main__':
     wordInd = {} 
-    fileNames = [('../data/bad_deals.txt',-1), ('../data/good_deals.txt',1)]        
+    fileNames = [('../data/bad_deals.txt',0), ('../data/good_deals.txt',1)]        
     X, Y = getTFIDF(fileNames, wordInd)
     
     Xtr, Xts, Ytr, Yts = CV.train_test_split(X.todense(), Y, test_size=0.3,
@@ -128,7 +128,7 @@ if __name__== '__main__':
                         "random_state": [None],
                         "max_depth": [None],
                         "n_estimators": [200]}
-    clf = GridSearchCV(Forest, tuned_parameters, cv=10, scoring='accuracy')
+    clf = GridSearchCV(Forest, tuned_parameters, cv=10, scoring='f1')
     clf.fit(Xtr, Ytr)
     predY = clf.predict(Xts)
     print classification_report(Yts, predY)
@@ -138,17 +138,17 @@ if __name__== '__main__':
     tuned_parameters = {'kernel': ['rbf'], 'gamma': [0.05], 
                         'C': [12]}
     svmObj = SVC()
-    clf = GridSearchCV(svmObj, tuned_parameters, cv=10, scoring='accuracy')
+    clf = GridSearchCV(svmObj, tuned_parameters, cv=10, scoring='f1')
     clf.fit(Xtr, Ytr)
     predY = clf.predict(Xts)
     print classification_report(Yts, predY)
     print clf.best_params_
     print clf.best_score_ 
     
-    tuned_parameters = {'kernel': ['poly'], 'degree': [4], 'coef0':[0.5,1,1.5],
-                        'C': [50,75,100,125]}
+    tuned_parameters = {'kernel': ['poly'], 'degree': [4], 'coef0':[1],
+                        'C': [90,95,100]}
     svmObj = SVC()
-    clf = GridSearchCV(svmObj, tuned_parameters, cv=10, scoring='accuracy')
+    clf = GridSearchCV(svmObj, tuned_parameters, cv=10, scoring='f1')
     clf.fit(Xtr, Ytr)
     predY = clf.predict(Xts)
     print classification_report(Yts, predY)

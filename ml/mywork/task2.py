@@ -136,7 +136,7 @@ if __name__== '__main__':
     wordInd = {} 
     fileName = '../data/deals.txt'
     X = getCSC(fileName, wordInd)
-    kVals = range(20,210,20)    # coarse set of parameters
+    kVals = range(8,32,4)    # coarse set of parameters
     allEnt = getAllEnt(X, wordInd, kVals)
     plt.plot(kVals, allEnt)
     plt.ylabel('Sum of entropy')
