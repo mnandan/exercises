@@ -121,12 +121,12 @@ if __name__== '__main__':
     Xtr, Xts, Ytr, Yts = CV.train_test_split(X.todense(), Y, test_size=0.3,
                                               random_state=42)
     Forest = RFC()
-    tuned_parameters = {"criterion": ["gini", "entropy"], 
-                        "min_samples_split": [2,4], 
-                        "min_samples_leaf": [1,2],
-                        "random_state": [None,10],
+    tuned_parameters = {"criterion": ["entropy"], 
+                        "min_samples_split": [4,6,8], 
+                        "min_samples_leaf": [2],
+                        "random_state": [None],
                         "max_depth": [None],
-                        "n_estimators": [100,200,300]}
+                        "n_estimators": [200]}
     clf = GridSearchCV(Forest, tuned_parameters, cv=10, scoring='f1')
     clf.fit(Xtr, Ytr)
     predY = clf.predict(Xts)
