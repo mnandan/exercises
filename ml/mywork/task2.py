@@ -14,7 +14,6 @@ import re
 from nltk.stem.wordnet import WordNetLemmatizer
 import nltk
 import scipy.sparse as sparseMat 
-from sklearn.feature_extraction.text import TfidfTransformer
 from gensim.models import ldamodel as lda
 import gensim.matutils as genCorp 
 import matplotlib.pyplot as plt
@@ -66,14 +65,12 @@ def parseFile(fileName, wordInd):
     stopWords_.extend(['online', 'shop', 'buy'])
     stopWords_ = set(stopWords_)    # set gives faster access
     fileWords = []    # list of dict stores count of words in each line
-    lineNum = 0
     currWrd = [0]    # currWrd is the index of next word
     with open(fileName,'r') as fIn:
         # Read each line in file. Extract words from line.
         for line in fIn:
             lineWords = parseLine(line, stopWords_, wordInd, currWrd)
             fileWords.append(lineWords)
-            lineNum += 1
     return fileWords
 
 def getCSC(fileName, wordInd):
@@ -99,35 +96,47 @@ def getCSC(fileName, wordInd):
     #X = TfidfTransformer().fit_transform(X)
     return X
 
-def getLdaWeight(corpus, id2w, k):
-    # Generate LDA model
+def getLdaEnt(corpus, id2w, k):
+    """ Generate LDA model with k topics and returns sum of all topic 
+    entropys.
+    """    
     model = lda.LdaModel(corpus, id2word=id2w, num_topics=k, chunksize=10000,
-                         passes=2)
-    # get the top 10 words in the k topics from the LDA model
-    tops = model.show_topics(topics=k,topn=10,formatted = False)
-    # get the weights of all the words in tops
-    weights = [tops[i][j][0] for i in range(0,k) for j in range(0,10)]        
-    return sum(weights)/(k*10.0)
+                         passes=2)    
+    # get the topn words in the k topics from the LDA model
+    topnNum=100
+    tops = model.show_topics(topics=k, topn=topnNum, formatted = False)
+    # Compute entropy of each topic
+    entropy = []
+    for i in range(0,k):
+        entropy.append(0) 
+        for j in range(0,topnNum):
+            p = tops[i][j][0]
+            entropy[i] -= p*log(p, base=2)          
+    return entropy
 
-def getWeights(X, w, kVals):
-    allErr = []
+def getAllEnt(X, w, kVals):
+    """ Generate LDA model with k topics for all k in kVals
+    and returns list of sum of all topic entropys.
+    """     
+    allEnt = []
     # generate gensim corpus
     corpus = genCorp.Sparse2Corpus(X, documents_columns=False)
     # generate a hash with key and value of w reversed    
     id2w = dict((value,key) for key,value in w.iteritems())
     for k in kVals:
-        err = getLdaWeight(corpus,id2w, k)
-        print k, err
-        allErr.append(err)
-    return allErr
+        ent = getLdaEnt(corpus,id2w, k)
+        # display statistics to help in tuning
+        print k, sum(ent), min(ent), max(ent), std(ent)
+        allEnt.append(sum(ent))
+    return allEnt
         
 if __name__== '__main__':
     wordInd = {} 
     fileName = '../data/deals.txt'
     X = getCSC(fileName, wordInd)
     kVals = range(20,210,20)    # coarse set of parameters
-    allErr = getWeights(X, wordInd, kVals)
-    plt.plot(kVals, allErr)
-    plt.ylabel('Sum of weights')
+    allEnt = getAllEnt(X, wordInd, kVals)
+    plt.plot(kVals, allEnt)
+    plt.ylabel('Sum of entropy')
     plt.xlabel('Number of latent topics')
     plt.show()    
