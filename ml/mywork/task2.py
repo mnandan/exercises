@@ -19,6 +19,7 @@ import gensim.matutils as genCorp
 import matplotlib.pyplot as plt
 import math
 import numpy as np
+from sklearn.cluster import DBSCAN
 
 def parseLine(line, stopWords_, wordInd, currWrd):
     """Updates wordInd with word as key and index as value. Removes
@@ -105,7 +106,7 @@ def getLdaEnt(corpus, id2w, k):
     model = lda.LdaModel(corpus, id2word=id2w, num_topics=k, chunksize=10000,
                          passes=2)    
     # get the topn words in the k topics from the LDA model
-    topnNum=100
+    topnNum = 100
     tops = model.show_topics(topics=k, topn=topnNum, formatted = False)
     # Compute entropy of each topic
     entropy = []
@@ -116,15 +117,11 @@ def getLdaEnt(corpus, id2w, k):
             entropy[i] -= p*math.log(p, 2)          
     return entropy
 
-def getAllEnt(X, w, kVals):
+def getAllEnt(corpus, id2w, kVals):
     """ Generate LDA model with k topics for all k in kVals
     and returns list of sum of all topic entropys.
     """     
     allEnt = []
-    # generate gensim corpus
-    corpus = genCorp.Sparse2Corpus(X, documents_columns=False)
-    # generate a hash with key and value of w reversed    
-    id2w = dict((value,key) for key,value in w.iteritems())
     for k in kVals:
         ent = getLdaEnt(corpus,id2w, k)
         # display statistics to help in tuning
@@ -136,12 +133,29 @@ if __name__== '__main__':
     wordInd = {} 
     fileName = '../data/deals.txt'
     X = getCSC(fileName, wordInd)
+    # generate a hash with key and value of w reversed    
+    id2w = dict((value,key) for key,value in wordInd.iteritems())
+    # generate gensim corpus
+    corpus = genCorp.Sparse2Corpus(X, documents_columns=False)
 #     kVals = range(4,14,2)    # coarse set of parameters
-#     allEnt = getAllEnt(X, wordInd, kVals)
+#     allEnt = getAllEnt(corpus, id2w, kVals)
 #     plt.plot(kVals, allEnt)
 #     plt.ylabel('Mean of entropy')
 #     plt.xlabel('Number of latent topics')
 #     plt.show()    
     
     # Ideal number of topics identified as 10 based on finalfig.png
-    # and the high variation in the entropy values of the topics 
+    # and the high variation in the entropy values of the topics
+    k = 10 
+    model = lda.LdaModel(corpus, id2word=id2w, num_topics=k, chunksize=10000,
+                         passes=2)    
+    # get the topn words in the k topics from the LDA model
+    topnNum = 10
+    tops = model.show_topics(topics=k, topn=topnNum, formatted = False)
+    # Display the top 10 terms in each of the 10 topic vectors
+    for i in range(0,k):
+        for j in range(0,topnNum):
+            print tops[i][j][0] 
+    # Get document-topic matrix using model
+    #docTop = lda.inference(X)
+           
