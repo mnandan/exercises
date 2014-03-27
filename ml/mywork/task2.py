@@ -136,9 +136,12 @@ if __name__== '__main__':
     wordInd = {} 
     fileName = '../data/deals.txt'
     X = getCSC(fileName, wordInd)
-    kVals = range(4,14,2)    # coarse set of parameters
-    allEnt = getAllEnt(X, wordInd, kVals)
-    plt.plot(kVals, allEnt)
-    plt.ylabel('Sum of entropy')
-    plt.xlabel('Number of latent topics')
-    plt.show()    
+#     kVals = range(4,14,2)    # coarse set of parameters
+#     allEnt = getAllEnt(X, wordInd, kVals)
+#     plt.plot(kVals, allEnt)
+#     plt.ylabel('Mean of entropy')
+#     plt.xlabel('Number of latent topics')
+#     plt.show()    
+    
+    # Ideal number of topics identified as 10 based on finalfig.png
+    # and the high variation in the entropy values of the topics 

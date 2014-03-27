@@ -129,10 +129,11 @@ if __name__== '__main__':
     clf = GridSearchCV(svmObj, tuned_parameters, cv=10, scoring='accuracy')
     clf.fit(Xtr, Ytr)
     predY = clf.predict(Xts)
-    print classification_report(Yts, predY)
-    print clf.best_params_
-    print clf.best_score_
-    
+
+    print "On the validation set (30% of good and bad deals) that were not",
+    print "used in training, the classification accuracy is ", 
+    print 100.0*clf.best_score_, "%"
+
     clf = SVC(kernel='rbf', gamma=0.05, C=12)
     clf.fit(X, Y)
     # Collect data from test file.
@@ -143,13 +144,14 @@ if __name__== '__main__':
     rdimTr, cdimTr = X.shape    
     # Deals with such words can be taken to be good.    
     markWords = ['coupon','code']
+    labldCnt = 0
     for wrd in markWords:        
         if wrd in wordInd:
             colNum = wordInd[wrd]
             for i in range(0,rdimT):
                 if(XTest[i,colNum] > 0):           
                     YTest[i] = 1
-
+                    labldCnt += 1
     # If new words were discovered in test file ignore their values.   
     if cdimT > cdimTr:
         XTest = XTest[:,0:cdimTr]
@@ -159,9 +161,22 @@ if __name__== '__main__':
     for y,p in zip(YTest,predYtest):        
         if p == y:
             yCnt += 1
-    print yCnt            
-        
-     
-
-        
-        
+    print "On the automatically labeled good deals, ",
+    print 100.0*float(yCnt)/labldCnt, "% deals are correctly classified"
+    # Manually generated test labels.
+    YTest2 = [0, 1, 0, 1, 1, 1, 0, 0, 0, 1, 0, 0, 1, 0, 1, 0, 0, 0, 1, 0, 0, 
+              0, 0, 1, 1, 1, 1, 0, 0, 0, 0, 1, 1, 0, 0, 1, 1, 1, 1, 1, 1, 1,
+              0, 1, 0, 0, 1, 0, 0, 1, 0, 0, 0, 0, 0, 1, 1, 0]
+    YTest2 = np.asarray(YTest2).astype('int8')
+    # Copy previosuly identified good deals from YTest labels.    
+    for i in range(0,rdimT):
+        if(YTest[i] == 1):           
+            YTest2[i] = 1    
+    yCnt2 = 0;
+    for y,p in zip(YTest2,predYtest):        
+        if p == y:
+            yCnt2 += 1
+    print "On the manually labeled deals, ",
+    print 100.0*float(yCnt2)/len(YTest2), "% deals are correctly classified"
+    # To get a better estimate of accuracy on test set clustering can be used.
+    # Labels can be assigned based on the label of the cluster it belongs to.      
